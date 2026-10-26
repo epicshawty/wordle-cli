@@ -61,6 +61,7 @@ cd wordle-cli && go build -trimpath -o wordle .
 | --- | --- |
 | `--word WORD` | play a fixed answer |
 | `--plain` | line mode: no TUI, no colour |
+| `--no-sound` | mute the cues (also `WORDLE_SOUND=0`) |
 | `--version` | print the version |
 
 Piped output is not a terminal, so it switches to line mode on its own:
@@ -72,6 +73,19 @@ $ printf 'stair\ncrane\n' | wordle --word crane --plain
 
 Got it in 2/6.
 ```
+
+## Sound
+
+Cues are on in the TUI, silent in pipes, `--plain` and `WORDLE_SOUND=0`. They are synthesized at runtime — no audio files ship — and still cost no cgo:
+
+| platform | backend | keystroke latency |
+| --- | --- | --- |
+| Windows | `winmm` `PlaySound`, in-memory | ~5 ms |
+| macOS | `afplay` | ~15 ms |
+| Linux / BSD | `paplay`, `pw-play` or `aplay`, whichever is on `PATH` | ~10 ms |
+| anything else | silent, never an error | — |
+
+A guess plays as a single mixed buffer: one blip per tile at 45 ms intervals, brighter for green, dull for grey, so a one-channel player cannot cut itself off.
 
 ## Build for anything
 
@@ -93,6 +107,7 @@ Releases are cut from tags matching `v*.*.*` (semver). Pushing one tag runs `.gi
 | `internal/game` | rules only: two-pass scoring so repeated letters are correct, win/loss state |
 | `internal/words` | 2,315 words via `go:embed`, used as answers and as valid guesses |
 | `internal/ui` | bubbletea/lipgloss board, keyboard, adaptive layout for small terminals |
+| `internal/sound` | synthesized cues: winmm on Windows, a system player elsewhere, silence if neither |
 | `internal/plain` | line mode for pipes, CI and `--plain` |
 
 The word list is the ENABLE word list (public domain) ranked by OpenSubtitles frequency data (CC BY-SA 4.0) and filtered to five letters.

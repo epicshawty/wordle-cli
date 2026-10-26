@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/epicshawty/wordle-cli/internal/game"
+	"github.com/epicshawty/wordle-cli/internal/sound"
 	"github.com/epicshawty/wordle-cli/internal/words"
 )
 
@@ -22,6 +23,7 @@ const (
 // Model is the interactive state of one session.
 type Model struct {
 	g     *game.Game
+	snd   *sound.Player
 	typed []byte
 	msg   string
 	bad   bool
@@ -29,10 +31,11 @@ type Model struct {
 	w, h  int
 }
 
-// New wires a round to the dictionary and returns the model.
-func New(g *game.Game) Model {
+// New wires a round to the dictionary and to the sound player and returns the
+// model. snd may be nil.
+func New(g *game.Game, snd *sound.Player) Model {
 	g.Known = words.Valid
-	return Model{g: g}
+	return Model{g: g, snd: snd}
 }
 
 // Init implements tea.Model.
@@ -69,6 +72,7 @@ func (m Model) key(k tea.KeyMsg) (tea.Model, tea.Cmd) {
 		if len(m.typed) > 0 {
 			m.typed = m.typed[:len(m.typed)-1]
 			m.msg, m.bad = "", false
+			m.snd.Play(sound.Erase)
 		}
 		return m, nil
 	case "q":
@@ -91,6 +95,7 @@ func (m Model) key(k tea.KeyMsg) (tea.Model, tea.Cmd) {
 		if c >= 'a' && c <= 'z' && m.g.Status == game.Playing && len(m.typed) < game.WordLen {
 			m.typed = append(m.typed, byte(c))
 			m.msg, m.bad = "", false
+			m.snd.Play(sound.Type)
 		}
 	}
 	return m, nil
@@ -102,22 +107,28 @@ func (m Model) submit() (tea.Model, tea.Cmd) {
 	}
 	if len(m.typed) < game.WordLen {
 		m.msg, m.bad = "Not enough letters", true
+		m.snd.Play(sound.Invalid)
 		return m, nil
 	}
 	if err := m.g.Play(string(m.typed)); err != nil {
 		m.msg, m.bad = err.Error(), true
+		m.snd.Play(sound.Invalid)
 		return m, nil
 	}
 
 	m.typed, m.bad = nil, false
+	final := sound.None
 	switch m.g.Status {
 	case game.Won:
 		m.msg = praise(len(m.g.Guesses))
+		final = sound.Win
 	case game.Lost:
 		m.msg = "The word was " + strings.ToUpper(m.g.Answer)
+		final = sound.Lose
 	default:
 		m.msg = ""
 	}
+	m.snd.PlayRow(m.g.Marks[len(m.g.Marks)-1], final)
 	return m, nil
 }
 
