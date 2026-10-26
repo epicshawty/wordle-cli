@@ -32,7 +32,9 @@ builds:
         goarch: "386"
 
 archives:
-  - formats: [tar.gz]
+  - # version-free names so /releases/latest/download/<name> never rots
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    formats: [tar.gz]
     format_overrides:
       - goos: windows
         formats: [zip]

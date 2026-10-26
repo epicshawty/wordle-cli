@@ -17,14 +17,31 @@ A five-letter word game for the terminal. One random answer per round, six guess
 
 ## Install
 
+Prebuilt binaries for linux, macos, windows and freebsd — see [releases][releases].
+
+Linux / macOS (amd64; `linux_arm64`, `darwin_arm64`, `freebsd_amd64` and others ship too):
+
 ```bash
-# prebuilt binary — linux, macos, windows, freebsd (amd64/arm64/arm/386)
-# https://github.com/epicshawty/wordle-cli/releases/latest
+curl -fsSL https://github.com/epicshawty/wordle-cli/releases/latest/download/wordle_linux_amd64.tar.gz | tar xz
+sudo install wordle /usr/local/bin
+```
 
-# with Go 1.24 or newer
+Windows (PowerShell):
+
+```powershell
+irm https://github.com/epicshawty/wordle-cli/releases/latest/download/wordle_windows_amd64.zip -OutFile wordle.zip
+Expand-Archive wordle.zip -DestinationPath .
+```
+
+With Go 1.24 or newer:
+
+```bash
 go install github.com/epicshawty/wordle-cli@latest
+```
 
-# from source
+From source:
+
+```bash
 git clone https://github.com/epicshawty/wordle-cli
 cd wordle-cli && go build -trimpath -o wordle .
 ```
