@@ -106,7 +106,7 @@ The word list is the ENABLE word list (public domain) ranked by OpenSubtitles fr
 [badge-license]: https://img.shields.io/github/license/epicshawty/wordle-cli?style=flat-square&color=b59f3b
 [badge-go]: https://img.shields.io/github/go-mod/go-version/epicshawty/wordle-cli?style=flat-square
 [badge-platforms]: https://img.shields.io/badge/platforms-linux%20%7C%20macos%20%7C%20windows%20%7C%20freebsd-538d4e?style=flat-square
-[badge-downloads]: https://img.shields.io/github/downloads/epicshawty/wordle-cli/total?style=flat-square
+[badge-downloads]: https://img.shields.io/github/downloads/epicshawty/wordle-cli/total?style=flat-square&color=538d4e
 [releases]: https://github.com/epicshawty/wordle-cli/releases
 [ci]: https://github.com/epicshawty/wordle-cli/actions/workflows/ci.yml
 [license]: LICENSE
