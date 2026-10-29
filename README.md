@@ -57,6 +57,8 @@ cd wordle-cli && go build -trimpath -o wordle .
 | `r` | new word, once the round ends |
 | `q` `esc` `ctrl+c` | quit |
 
+Any real five-letter word is accepted as a guess — `beers`, `fjord`, `xenon` — but only the 2,315 common answers can be the word of the round.
+
 | flag | effect |
 | --- | --- |
 | `--word WORD` | play a fixed answer |
@@ -105,12 +107,12 @@ Releases are cut from tags matching `v*.*.*` (semver). Pushing one tag runs `.gi
 | package | job |
 | --- | --- |
 | `internal/game` | rules only: two-pass scoring so repeated letters are correct, win/loss state |
-| `internal/words` | 2,315 words via `go:embed`, used as answers and as valid guesses |
+| `internal/words` | 2,315 answers and 20,141 accepted guesses via `go:embed` |
 | `internal/ui` | bubbletea/lipgloss board, keyboard, adaptive layout for small terminals |
 | `internal/sound` | synthesized cues: winmm on Windows, a system player elsewhere, silence if neither |
 | `internal/plain` | line mode for pipes, CI and `--plain` |
 
-The word list is the ENABLE word list (public domain) ranked by OpenSubtitles frequency data (CC BY-SA 4.0) and filtered to five letters.
+The answers are the ENABLE word list (public domain) ranked by OpenSubtitles frequency data (CC BY-SA 4.0), so a random answer is always a word you know. Guesses add every other real five-letter word from ENABLE and the Wordle-derived list — 20,141 in total, inflections and rare words included. Slurs are filtered from both.
 
 ## License
 

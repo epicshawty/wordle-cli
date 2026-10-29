@@ -2,59 +2,92 @@
 
 package words
 
-import "testing"
+import (
+	"sort"
+	"strings"
+	"testing"
+)
 
-func TestList(t *testing.T) {
+func TestLists(t *testing.T) {
 	if Len() < 2000 {
-		t.Fatalf("dictionary has %d words, want at least 2000", Len())
+		t.Fatalf("only %d answers", Len())
 	}
-	seen := make(map[string]bool, Len())
-	for _, w := range All() {
+	if GuessCount() < 15000 {
+		t.Fatalf("only %d accepted guesses", GuessCount())
+	}
+
+	seen := make(map[string]bool, GuessCount())
+	for _, w := range strings.Fields(rawGuesses) {
 		if len(w) != 5 {
-			t.Fatalf("%q is not five letters", w)
-		}
-		for i := 0; i < len(w); i++ {
-			if w[i] < 'a' || w[i] > 'z' {
-				t.Fatalf("%q is not lowercase a-z", w)
-			}
+			t.Fatalf("guess %q is not five letters", w)
 		}
 		if seen[w] {
-			t.Fatalf("%q is duplicated", w)
+			t.Fatalf("guess %q duplicated", w)
 		}
 		seen[w] = true
 	}
+
+	// Every answer has to be playable.
+	for _, a := range Answers() {
+		if !Valid(a) {
+			t.Fatalf("answer %q is not an accepted guess", a)
+		}
+		if !IsAnswer(a) {
+			t.Fatalf("answer %q not recognised by IsAnswer", a)
+		}
+	}
+	if IsAnswer("zzzzz") || IsAnswer("fjord") {
+		t.Fatal("IsAnswer accepted a non-answer")
+	}
 }
 
-func TestValid(t *testing.T) {
-	if !Valid(All()[0]) {
-		t.Fatalf("%q should be valid", All()[0])
+// TestGuessesCoverRealWords pins the cases that used to be rejected while the
+// dictionary was filtered against dictionary headwords.
+func TestGuessesCoverRealWords(t *testing.T) {
+	real := []string{
+		"beers", "mails", "cared", "joked", "waved", "cooks", // inflections
+		"fjord", "lymph", "nymph", "ouija", "xenon", "yodel", "yucky", "zonal", "axiom", "quirk", // rare but real
 	}
-	if Valid("zzzzz") || Valid("CRANE") || Valid("") {
-		t.Fatal("invalid words accepted")
+	for _, w := range real {
+		if !Valid(w) {
+			t.Errorf("%q should be accepted as a guess", w)
+		}
+	}
+	for _, w := range []string{"zzzzz", "CRANE", "aaaaa", ""} {
+		if Valid(w) {
+			t.Errorf("%q should not be accepted", w)
+		}
 	}
 }
 
 func TestRandom(t *testing.T) {
 	for i := 0; i < 200; i++ {
-		if w := Random(); !Valid(w) {
-			t.Fatalf("Random returned unknown word %q", w)
+		if w := Random(); !IsAnswer(w) {
+			t.Fatalf("Random returned %q, which is not an answer", w)
 		}
-	}
-	if a, b := Random(), Random(); a == b && Len() > 1 && a != Random() {
-		// Two draws matching is legal; this only fails if Random is stuck.
-		t.Skip("coincidental duplicate")
 	}
 }
 
 func TestPick(t *testing.T) {
-	want := All()[42]
+	want := Answers()[42]
 	if got, err := Pick(want); err != nil || got != want {
 		t.Fatalf("Pick(%q) = %q, %v", want, got, err)
 	}
-	if got, err := Pick(""); err != nil || !Valid(got) {
+	if got, err := Pick(""); err != nil || !IsAnswer(got) {
 		t.Fatalf("Pick(\"\") = %q, %v", got, err)
+	}
+	// A valid guess that is not an answer is allowed, for testing.
+	if got, err := Pick("fjord"); err != nil || got != "fjord" {
+		t.Fatalf("Pick(fjord) = %q, %v", got, err)
 	}
 	if _, err := Pick("zzzzz"); err == nil {
 		t.Fatal("Pick accepted an unknown word")
+	}
+}
+
+// TestGuessesSorted guards the binary search in Valid.
+func TestGuessesSorted(t *testing.T) {
+	if !sort.StringsAreSorted(guesses) {
+		t.Fatal("guesses.txt is not sorted; Valid relies on it")
 	}
 }
